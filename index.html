@@ -174,6 +174,16 @@
   @media (max-width:1100px){ .charts{ grid-template-columns:1fr; } }
   .charts-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
   @media (max-width:1100px){ .charts-2{ grid-template-columns:1fr; } }
+  .charts-1 { display:grid; grid-template-columns:1fr; gap:16px; }
+  /* small toggle chips in chart headers — reuse existing palette, no new UI language */
+  .scaletog, .ab-btn {
+    font-size:8px; letter-spacing:1px; text-transform:uppercase; cursor:pointer;
+    color:var(--muted); border:1px solid var(--border); padding:3px 7px;
+    transition: all .28s cubic-bezier(.16,1,.3,1); user-select:none; line-height:1;
+  }
+  .scaletog:hover, .ab-btn:hover { border-color:var(--accent); color:var(--accent); transform:translateY(-1px); box-shadow:0 4px 10px -6px var(--accent); }
+  .scaletog.active { background:var(--accent3); color:var(--bg); border-color:var(--accent3); font-weight:bold; }
+  .ab-btn:active { transform:translateY(0) scale(.95); }
 
   .chart-h { display:flex; justify-content:space-between; align-items:center; padding:12px 16px; border-bottom:1px solid var(--border); }
   .chart-t { font-size:10px; letter-spacing:2px; color:var(--text); text-transform:uppercase; }
@@ -391,6 +401,7 @@
               <span><i style="background:var(--accent)"></i>Median</span>
               <span><i style="background:var(--accent4)"></i>Top 5%</span>
               <span><i style="background:var(--accent2)"></i>Bottom 5%</span>
+              <span class="scaletog" id="logTog" title="Toggle linear / log Y-axis">LOG</span>
             </div>
           </div>
           <div class="chart-b"><canvas id="equityChart" height="300"></canvas></div>
@@ -431,6 +442,107 @@
           <div class="chart-h"><div class="chart-t">Capital Flow — Wins vs Losses vs Fees<span class="info" data-info="flow">?</span></div></div>
           <div class="chart-b"><canvas id="flowChart" height="220"></canvas></div>
           <div class="caption">A waterfall of where money comes and goes: gross <b>wins</b>, minus <b>losses</b>, minus <b>fees</b>, equals your <b>net</b>. Handy for spotting when commissions quietly eat the edge.</div>
+        </div>
+      </div>
+
+      <!-- ===== NEW: Percentile Fan (full width) ===== -->
+      <div class="charts-1">
+        <div class="card">
+          <div class="chart-h">
+            <div class="chart-t">Percentile Fan — Probability Cone<span class="info" data-info="fan">?</span></div>
+            <div class="legend">
+              <span><i style="background:var(--accent2)"></i>P5</span>
+              <span><i style="background:var(--accent3)"></i>P25</span>
+              <span><i style="background:var(--accent)"></i>P50</span>
+              <span><i style="background:var(--accent3)"></i>P75</span>
+              <span><i style="background:var(--accent4)"></i>P95</span>
+            </div>
+          </div>
+          <div class="chart-b"><canvas id="fanChart" height="300"></canvas></div>
+          <div class="caption">The full <b>cone of outcomes</b>. Half of all runs land inside the dark inner band (P25–P75); 90% land inside the outer band (P5–P95). The wider the cone spreads, the more your result is at the mercy of <b>luck of sequence</b>. Hover any trade for its five percentiles.</div>
+        </div>
+      </div>
+
+      <!-- ===== NEW: DD Duration + DD Depth distribution ===== -->
+      <div class="charts-2">
+        <div class="card">
+          <div class="chart-h"><div class="chart-t">Time-in-Drawdown — Duration Histogram<span class="info" data-info="ddur">?</span></div></div>
+          <div class="chart-b"><canvas id="ddDurChart" height="220"></canvas></div>
+          <div class="caption">Not how <b>deep</b> but how <b>long</b> you stay underwater — the longest losing stretch (in trades) for each of the 600 runs. Long bars to the right = extended droughts that test your patience even on a winning system.</div>
+        </div>
+        <div class="card">
+          <div class="chart-h"><div class="chart-t">Max Drawdown Depth — Distribution<span class="info" data-info="ddepth">?</span></div></div>
+          <div class="chart-b"><canvas id="ddDepthChart" height="220"></canvas></div>
+          <div class="caption">The spread of <b>worst-case drops</b> across all runs. The median tells the typical pain, but the <b>right tail</b> is what ends accounts — see how bad the unlucky 5% actually got before betting big.</div>
+        </div>
+      </div>
+
+      <!-- ===== NEW: Kelly growth + Risk of Ruin curve ===== -->
+      <div class="charts-2">
+        <div class="card">
+          <div class="chart-h">
+            <div class="chart-t">Kelly Growth Curve — Growth vs Risk %<span class="info" data-info="kellycurve">?</span></div>
+            <div class="legend"><span><i style="background:var(--accent3)"></i>You</span><span><i style="background:var(--accent4)"></i>½-Kelly</span><span><i style="background:var(--accent)"></i>Full-Kelly</span></div>
+          </div>
+          <div class="chart-b"><canvas id="kellyChart" height="220"></canvas></div>
+          <div class="caption">Expected <b>compounding rate</b> for every risk-per-trade size. It rises to a peak (full-Kelly) then <b>crashes</b> — proof that over-betting destroys growth even with a real edge. Most pros sit at half-Kelly for a smoother ride.</div>
+        </div>
+        <div class="card">
+          <div class="chart-h">
+            <div class="chart-t">Risk of Ruin — vs Risk per Trade<span class="info" data-info="rorcurve">?</span></div>
+            <div class="legend"><span><i style="background:var(--accent3)"></i>Your risk</span></div>
+          </div>
+          <div class="chart-b"><canvas id="rorChart" height="220"></canvas></div>
+          <div class="caption">The <b>cliff edge</b> of position sizing. As you risk more per trade, the chance of an account-ending 80%+ collapse rises — often gently, then suddenly. The yellow line marks where you sit today.</div>
+        </div>
+      </div>
+
+      <!-- ===== NEW: R-multiple histogram + Rolling win rate ===== -->
+      <div class="charts-2">
+        <div class="card">
+          <div class="chart-h"><div class="chart-t">R-Multiple Profile — Single-Trade Outcomes<span class="info" data-info="rmult">?</span></div></div>
+          <div class="chart-b"><canvas id="rmultChart" height="220"></canvas></div>
+          <div class="caption">The shape of one trade: how often you take a <b>−1R loss</b> vs a <b>+{rr}R win</b>, and the net <b>expectancy</b> (dashed). A tall winner bar can be short and still win if it's tall enough in reward.</div>
+        </div>
+        <div class="card">
+          <div class="chart-h">
+            <div class="chart-t">Rolling Win Rate — Variance Over Time<span class="info" data-info="rollwr">?</span></div>
+            <div class="legend"><span><i style="background:var(--accent3)"></i>True rate</span></div>
+          </div>
+          <div class="chart-b"><canvas id="rollWRChart" height="220"></canvas></div>
+          <div class="caption">One realistic run's win rate measured over a <b>moving window</b>. Even at a fixed true edge it swings wildly — this is why a good system can <b>feel</b> broken for stretches. The dashed line is your real rate.</div>
+        </div>
+      </div>
+
+      <!-- ===== NEW: Expectancy convergence + Net profit contour ===== -->
+      <div class="charts-2">
+        <div class="card">
+          <div class="chart-h"><div class="chart-t">Expectancy Convergence — Law of Large Numbers<span class="info" data-info="conv">?</span></div></div>
+          <div class="chart-b"><canvas id="convChart" height="220"></canvas></div>
+          <div class="caption">Your <b>running average profit per trade</b> as trades accumulate. Early on it's noisy and can look negative; over time it <b>converges</b> to true expectancy (dashed). Shows how many trades before results mean anything.</div>
+        </div>
+        <div class="card">
+          <div class="chart-h"><div class="chart-t">Net Profit Contour — Magnitude Map<span class="info" data-info="contour">?</span></div></div>
+          <div class="chart-b"><canvas id="contourChart" height="220"></canvas></div>
+          <div class="caption">Like the heatmap but showing <b>how much</b> you make, not just win/lose. Brighter green = bigger profit. The bold line is the <b>breakeven frontier</b> — the exact win-rate / reward combos that scrape zero.</div>
+        </div>
+      </div>
+
+      <!-- ===== NEW: Strategy A vs B overlay (full width) ===== -->
+      <div class="charts-1">
+        <div class="card">
+          <div class="chart-h">
+            <div class="chart-t">Strategy A vs B — Overlay Compare<span class="info" data-info="ab">?</span></div>
+            <div class="legend">
+              <span class="ab-btn" id="saveA">SAVE A</span>
+              <span class="ab-btn" id="saveB">SAVE B</span>
+              <span class="ab-btn" id="clearAB">CLEAR</span>
+              <span><i style="background:var(--accent)"></i>A</span>
+              <span><i style="background:var(--accent4)"></i>B</span>
+            </div>
+          </div>
+          <div class="chart-b"><canvas id="abChart" height="260"></canvas></div>
+          <div class="caption">Save your current setup as <b>A</b>, tweak the inputs, then save as <b>B</b> to overlay both median paths as <b>% return</b> (normalised so different trade counts compare fairly). The real "which is better?" view. <span id="ab-status" style="color:var(--muted)"></span></div>
         </div>
       </div>
 
@@ -525,7 +637,17 @@ const DESC = {
   worst:    {t:'Worst Case (5th percentile)', b:'A realistic bad-luck scenario: only 1 in 20 simulations ended worse than this. Use it to stress-test — "can I survive this outcome?"', f:'= 5th-percentile ending balance'},
   best:     {t:'Best Case (95th percentile)', b:'A realistic good-luck scenario: only 1 in 20 runs did better. The upside twin of the worst case.', f:'= 95th-percentile ending balance'},
   std:      {t:'Std Dev of Outcomes', b:'How widely the final balances scatter around the average. Big number = unpredictable, wild ride. Small number = consistent, reliable results.', f:'= Spread of all simulated endings'},
-  cagr:     {t:'CAGR-equivalent', b:'The smoothed compound growth rate normalised per 100 trades, so you can compare strategies that take different numbers of trades on a like-for-like basis.', f:'= (Ending ÷ Start)^(100÷Trades) − 1'}
+  cagr:     {t:'CAGR-equivalent', b:'The smoothed compound growth rate normalised per 100 trades, so you can compare strategies that take different numbers of trades on a like-for-like basis.', f:'= (Ending ÷ Start)^(100÷Trades) − 1'},
+  fan:      {t:'Percentile Fan', b:'A richer version of the equity band. Instead of just top/median/bottom, it shows five percentiles (P5, P25, P50, P75, P95). The dark inner band holds the middle 50% of futures; the outer band holds 90%. The spread is your uncertainty — narrow = predictable, wide = luck-dependent.', f:'Hover to read all 5 percentiles at that trade.'},
+  ddur:     {t:'Time-in-Drawdown', b:'Depth is only half the pain — duration is the other half. This shows the longest unbroken stretch you spend below a previous peak, across all 600 runs. Long droughts break discipline more than sharp drops, because they last.', f:'X = longest underwater streak (trades) · taller bar = more runs'},
+  ddepth:   {t:'Drawdown Depth Distribution', b:'The full spread of worst-case drops, not just the median. A cluster on the left means drawdowns are usually mild; a long right tail warns that a rare-but-brutal collapse is baked into this strategy. Size your risk for the tail, not the median.', f:'X = max drawdown % · taller bar = more runs'},
+  kellycurve:{t:'Kelly Growth Curve', b:'Plots long-run compounding rate against how much you risk per trade. It rises to a single peak — the full-Kelly fraction — then falls off a cliff into negative growth. It visually proves the trader\'s paradox: past a point, betting MORE makes you POORER. Half-Kelly captures ~75% of the growth with far less volatility.', f:'g(f) = p·ln(1+f·b) − q·ln(1−f)'},
+  rorcurve: {t:'Risk of Ruin Curve', b:'Shows how the probability of an account-ending collapse (here defined as losing 80%+ of capital) climbs as you increase risk per trade. It is often flat and safe for a while, then rises steeply — the "cliff" you never want to walk off. Your current risk is marked.', f:'Ruin = run falls below 20% of starting capital'},
+  rmult:    {t:'R-Multiple Profile', b:'Boils a strategy down to its atoms: a loss costs 1R (one unit of risk) and happens (1−WinRate) of the time; a win pays your reward ratio in R and happens WinRate of the time. The dashed line is expectancy — the net R you keep per trade on average.', f:'Expectancy = Win%·(+bR) − Loss%·(1R)'},
+  rollwr:   {t:'Rolling Win Rate', b:'Takes ONE realistic sequence of trades and measures the win rate inside a sliding window. Even when the true edge never changes, this line swings far above and below it — which is exactly why traders wrongly conclude a good system is "broken" during a normal cold streak.', f:'Window win rate vs true rate (dashed)'},
+  conv:     {t:'Expectancy Convergence', b:'Your cumulative average profit-per-trade as trades pile up. Early samples are pure noise and can sit deep in the red purely by chance; as N grows it converges toward true expectancy. The key lesson: small samples lie — you need many trades before your results are statistically real.', f:'Running mean P/L → true expectancy (dashed)'},
+  contour:  {t:'Net Profit Contour', b:'An upgrade of the expectancy heatmap that shows magnitude, not just sign. Brighter green = larger total profit for that win-rate / reward combo; red = loss. The bold curve is the breakeven frontier where profit is exactly zero — everything above-right of it makes money.', f:'Breakeven curve: Reward = (1−Win%) ÷ Win%'},
+  ab:       {t:'Strategy A vs B Overlay', b:'The decision tool. Snapshot your current inputs as A, change anything (win rate, R:R, risk, fees…), snapshot as B, and the two median equity paths overlay as % return. Because it normalises for trade count and capital, you get a fair head-to-head of which configuration actually wins.', f:'Both shown as % return vs progress'}
 };
 
 const pop = id('popover');
@@ -583,13 +705,15 @@ function attachHover(cid){
   });
   cv.addEventListener('mouseleave', ()=>{ if(REDRAW[cid]) REDRAW[cid](); hideTip(); });
 }
-['equityChart','histChart','ddChart','sensChart','heatChart','flowChart'].forEach(attachHover);
+['equityChart','histChart','ddChart','sensChart','heatChart','flowChart',
+ 'fanChart','ddDurChart','ddDepthChart','kellyChart','rorChart','rmultChart','rollWRChart','convChart','contourChart','abChart'].forEach(attachHover);
 
 /* =========================================================
    CONTROLS
 ========================================================= */
 const wr=id('winRate'),wrS=id('wrS'),rr=id('riskReward'),rrS=id('rrS'),tr=id('numTrades'),trS=id('trS'),curSel=id('currency');
 let CUR='$', MODE='fixed', STATE=null;
+let LOGSCALE=false, slotA=null, slotB=null;   // log-axis toggle + A/B compare snapshots
 function id(x){return document.getElementById(x);}
 function clamp(v,a,b){v=parseFloat(v)||a;return Math.min(Math.max(v,a),b);}
 
@@ -616,6 +740,30 @@ document.querySelectorAll('.preset').forEach(p=>p.addEventListener('click',()=>{
   rr.value=p.dataset.rr;rrS.value=p.dataset.rr;id('rr-d').textContent='1 : '+parseFloat(p.dataset.rr).toFixed(1);
   tr.value=p.dataset.tr;trS.value=p.dataset.tr;id('tr-d').textContent=p.dataset.tr;calculate();
 }));
+/* log-scale toggle for equity curve */
+id('logTog').addEventListener('click',function(){
+  LOGSCALE=!LOGSCALE; this.classList.toggle('active',LOGSCALE);
+  if(STATE) drawEquity(STATE.mc);
+});
+/* A vs B snapshot controls */
+function snapAB(slot){
+  if(!STATE) return;
+  const snap={
+    median:STATE.mc.median.slice(), capital:STATE.capital, trades:STATE.trades,
+    label:'WR '+(STATE.winRate*100).toFixed(0)+'% · 1:'+STATE.rrMult.toFixed(1)+' · '+STATE.trades+'t'
+  };
+  if(slot==='A') slotA=snap; else slotB=snap;
+  drawAB(); updateABStatus();
+}
+id('saveA').addEventListener('click',()=>snapAB('A'));
+id('saveB').addEventListener('click',()=>snapAB('B'));
+id('clearAB').addEventListener('click',()=>{slotA=null;slotB=null;drawAB();updateABStatus();});
+function updateABStatus(){
+  const el=id('ab-status');if(!el)return;
+  const a=slotA?('A = '+slotA.label):'A = —';
+  const b=slotB?(' · B = '+slotB.label):' · B = —';
+  el.textContent=' '+a+b;
+}
 
 /* =========================================================
    HELPERS
@@ -627,9 +775,10 @@ function pctl(arr,p){return arr[Math.floor(p*(arr.length-1))];}
    MONTE CARLO
 ========================================================= */
 function monteCarlo(winRate,rrMult,riskInput,capital,trades,fee,sims){
-  const curves=[],finals=[],dds=[],ddCurves=[];let ruin=0;
+  const curves=[],finals=[],dds=[],ddCurves=[],ddDur=[];let ruin=0;
   for(let s=0;s<sims;s++){
     let eq=capital,peak=capital,maxDD=0,ruined=false;
+    let curUW=0,maxUW=0;                       // underwater duration tracking
     const curve=[eq],ddc=[0];
     for(let t=0;t<trades;t++){
       const risk=MODE==='percent'?eq*(riskInput/100):riskInput;
@@ -639,11 +788,12 @@ function monteCarlo(winRate,rrMult,riskInput,capital,trades,fee,sims){
       if(eq>peak)peak=eq;
       const dd=peak>0?(peak-eq)/peak:0;
       if(dd>maxDD)maxDD=dd;
+      if(dd>1e-9){curUW++; if(curUW>maxUW)maxUW=curUW;} else curUW=0;
       curve.push(eq);ddc.push(dd);
-      if(ruined){for(let k=t+1;k<trades;k++){curve.push(0);ddc.push(1);}break;}
+      if(ruined){for(let k=t+1;k<trades;k++){curve.push(0);ddc.push(1);}maxUW=Math.max(maxUW,trades-t);break;}
     }
     if(ruined||eq<=capital*0.001)ruin++;
-    curves.push(curve);ddCurves.push(ddc);finals.push(eq);dds.push(maxDD);
+    curves.push(curve);ddCurves.push(ddc);finals.push(eq);dds.push(maxDD);ddDur.push(maxUW);
   }
   const band=p=>{const o=[];for(let t=0;t<=trades;t++){const col=curves.map(c=>c[t]).sort((a,b)=>a-b);o.push(col[Math.floor(p*(sims-1))]);}return o;};
   const ddBand=p=>{const o=[];for(let t=0;t<=trades;t++){const col=ddCurves.map(c=>c[t]).sort((a,b)=>a-b);o.push(col[Math.floor(p*(sims-1))]);}return o;};
@@ -651,8 +801,8 @@ function monteCarlo(winRate,rrMult,riskInput,capital,trades,fee,sims){
   const mean=finals.reduce((s,v)=>s+v,0)/sims;
   const std=Math.sqrt(finals.reduce((s,v)=>s+(v-mean)**2,0)/sims);
   return{
-    median:band(0.5),p95:band(0.95),p05:band(0.05),ddMedian:ddBand(0.5),
-    finals,
+    median:band(0.5),p95:band(0.95),p05:band(0.05),p25:band(0.25),p75:band(0.75),ddMedian:ddBand(0.5),
+    finals,dds,ddDur,
     medianFinal:pctl(finals,0.5),p05Final:pctl(finals,0.05),p95Final:pctl(finals,0.95),
     medianDD:pctl(dds,0.5),profitProb:finals.filter(f=>f>capital).length/sims,
     ruinRate:ruin/sims,mean,std,trades,capital
@@ -673,13 +823,26 @@ function drawEquity(mc){
   const{ctx,w,h}=setup(id('equityChart'),300);
   const pad={l:52,r:10,t:14,b:22};const W=w-pad.l-pad.r,H=h-pad.t-pad.b;
   const all=[...mc.p95,...mc.p05,mc.capital];let mx=Math.max(...all),mn=Math.min(...all);
-  const rg=(mx-mn)||1;mx+=rg*.05;mn-=rg*.05;
-  const n=mc.median.length-1;const X=i=>pad.l+i/n*W,Y=v=>pad.t+(1-(v-mn)/(mx-mn))*H;
+  const n=mc.median.length-1;const X=i=>pad.l+i/n*W;
+  let Y, gridVals;
+  if(LOGSCALE){
+    // log axis: floor tiny/zero values so log stays finite
+    const floor=Math.max(mx*0.001, 1);
+    const lo=Math.log(Math.max(mn,floor)), hi=Math.log(mx*1.05);
+    const rg=(hi-lo)||1;
+    Y=v=>pad.t+(1-(Math.log(Math.max(v,floor))-lo)/rg)*H;
+    gridVals=[]; for(let g=0;g<=4;g++) gridVals.push(Math.exp(lo+rg*g/4));
+  } else {
+    const rg=(mx-mn)||1;mx+=rg*.05;mn-=rg*.05;
+    const span=mx-mn;
+    Y=v=>pad.t+(1-(v-mn)/span)*H;
+    gridVals=[]; for(let g=0;g<=4;g++) gridVals.push(mn+span*g/4);
+  }
   // grid + y labels
   ctx.font='9px "Share Tech Mono"';ctx.fillStyle=css('--muted');ctx.textAlign='right';
-  for(let g=0;g<=4;g++){const v=mn+(mx-mn)*g/4,y=Y(v);
+  gridVals.forEach(v=>{const y=Y(v);
     ctx.strokeStyle=css('--border');ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+W,y);ctx.stroke();
-    ctx.fillText(CUR+Math.round(v).toLocaleString(),pad.l-6,y+3);}
+    ctx.fillText(CUR+Math.round(v).toLocaleString(),pad.l-6,y+3);});
   // baseline
   ctx.strokeStyle=css('--muted');ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(pad.l,Y(mc.capital));ctx.lineTo(pad.l+W,Y(mc.capital));ctx.stroke();ctx.setLineDash([]);
   // band
@@ -858,11 +1021,320 @@ function drawFlow(gp,gl,fees){
 function fmtShort(v){const a=Math.abs(v);let s;if(a>=1e6)s=(a/1e6).toFixed(1)+'M';else if(a>=1e3)s=(a/1e3).toFixed(1)+'k';else s=a.toFixed(0);return(v<0?'-'+CUR:CUR)+s;}
 function hexA(hex,a){hex=hex.replace('#','');if(hex.length===3)hex=hex.split('').map(c=>c+c).join('');const n=parseInt(hex,16);return`rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;}
 
+/* ---- generic histogram helper (value array -> bars) ---- */
+function histCounts(vals,bins,mn,mx){
+  const rg=(mx-mn)||1;const c=new Array(bins).fill(0);
+  vals.forEach(v=>{let b=Math.floor((v-mn)/rg*bins);if(b>=bins)b=bins-1;if(b<0)b=0;c[b]++;});
+  return c;
+}
+/* ============== NEW: Percentile Fan ============== */
+function drawFan(mc){
+  const{ctx,w,h}=setup(id('fanChart'),300);
+  const pad={l:52,r:10,t:14,b:22};const W=w-pad.l-pad.r,H=h-pad.t-pad.b;
+  const all=[...mc.p95,...mc.p05,mc.capital];let mx=Math.max(...all),mn=Math.min(...all);
+  const rg=(mx-mn)||1;mx+=rg*.05;mn-=rg*.05;
+  const n=mc.median.length-1;const X=i=>pad.l+i/n*W,Y=v=>pad.t+(1-(v-mn)/(mx-mn))*H;
+  ctx.font='9px "Share Tech Mono"';ctx.fillStyle=css('--muted');ctx.textAlign='right';
+  for(let g=0;g<=4;g++){const v=mn+(mx-mn)*g/4,y=Y(v);ctx.strokeStyle=css('--border');ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+W,y);ctx.stroke();ctx.fillText(CUR+Math.round(v).toLocaleString(),pad.l-6,y+3);}
+  ctx.strokeStyle=css('--muted');ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(pad.l,Y(mc.capital));ctx.lineTo(pad.l+W,Y(mc.capital));ctx.stroke();ctx.setLineDash([]);
+  const fillBand=(hiA,loA,col,a)=>{ctx.beginPath();ctx.moveTo(X(0),Y(hiA[0]));for(let i=1;i<=n;i++)ctx.lineTo(X(i),Y(hiA[i]));for(let i=n;i>=0;i--)ctx.lineTo(X(i),Y(loA[i]));ctx.closePath();ctx.fillStyle=hexA(col,a);ctx.fill();};
+  fillBand(mc.p95,mc.p05,css('--accent4'),0.06);   // outer 90%
+  fillBand(mc.p75,mc.p25,css('--accent'),0.14);     // inner 50%
+  const line=(d,c,wd,dash)=>{ctx.beginPath();d.forEach((v,i)=>i===0?ctx.moveTo(X(i),Y(v)):ctx.lineTo(X(i),Y(v)));ctx.strokeStyle=c;ctx.lineWidth=wd;if(dash)ctx.setLineDash(dash);ctx.stroke();ctx.setLineDash([]);};
+  line(mc.p95,hexA(css('--accent4'),.7),1,[3,3]);line(mc.p05,hexA(css('--accent2'),.7),1,[3,3]);
+  line(mc.p75,hexA(css('--accent3'),.8),1.1);line(mc.p25,hexA(css('--accent3'),.8),1.1);
+  line(mc.median,css('--accent'),2.2);
+  REDRAW['fanChart']=()=>drawFan(mc);
+  HOVER['fanChart']=(px)=>{
+    if(px<pad.l||px>pad.l+W)return null;
+    let i=Math.round((px-pad.l)/W*n);i=Math.max(0,Math.min(n,i));const gx=X(i);
+    ctx.strokeStyle=hexA(css('--muted'),.6);ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(gx,pad.t);ctx.lineTo(gx,pad.t+H);ctx.stroke();ctx.setLineDash([]);
+    [[mc.p95,css('--accent4')],[mc.p75,css('--accent3')],[mc.median,css('--accent')],[mc.p25,css('--accent3')],[mc.p05,css('--accent2')]].forEach(([d,c])=>{ctx.fillStyle=c;ctx.beginPath();ctx.arc(gx,Y(d[i]),3,0,7);ctx.fill();});
+    return {title:'Trade #'+i+' of '+n, rows:[
+      {label:'P95',val:fmt(mc.p95[i]),color:css('--accent4')},
+      {label:'P75',val:fmt(mc.p75[i]),color:css('--accent3')},
+      {label:'P50',val:fmt(mc.median[i]),color:css('--accent')},
+      {label:'P25',val:fmt(mc.p25[i]),color:css('--accent3')},
+      {label:'P5',val:fmt(mc.p05[i]),color:css('--accent2')}
+    ]};
+  };
+}
+/* ============== NEW: Drawdown Duration histogram ============== */
+function drawDDDur(mc){
+  const{ctx,w,h}=setup(id('ddDurChart'),220);
+  const pad={l:20,r:10,t:14,b:26};const W=w-pad.l-pad.r,H=h-pad.t-pad.b;
+  const bins=20;const mn=0,mx=Math.max(...mc.ddDur,1);
+  const counts=histCounts(mc.ddDur,bins,mn,mx);const cmax=Math.max(...counts,1);const bw=W/bins;
+  const medDur=[...mc.ddDur].sort((a,b)=>a-b)[Math.floor(0.5*(mc.ddDur.length-1))];
+  for(let i=0;i<bins;i++){const bh=counts[i]/cmax*H;ctx.fillStyle=hexA(css('--accent2'),.55);ctx.fillRect(pad.l+i*bw+1,pad.t+H-bh,bw-2,bh);}
+  const medX=pad.l+(medDur-mn)/((mx-mn)||1)*W;
+  ctx.strokeStyle=css('--accent3');ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(medX,pad.t);ctx.lineTo(medX,pad.t+H);ctx.stroke();ctx.setLineDash([]);
+  ctx.font='9px "Share Tech Mono"';ctx.fillStyle=css('--muted');ctx.textAlign='center';ctx.fillText('longest underwater streak (trades) →',pad.l+W/2,h-6);
+  ctx.fillStyle=css('--accent3');ctx.textAlign='left';ctx.fillText('median '+Math.round(medDur),medX+3,pad.t+9);
+  REDRAW['ddDurChart']=()=>drawDDDur(mc);
+  HOVER['ddDurChart']=(px,py)=>{
+    if(px<pad.l||px>pad.l+W||py<pad.t||py>pad.t+H)return null;
+    let b=Math.floor((px-pad.l)/bw);b=Math.max(0,Math.min(bins-1,b));
+    const bh=counts[b]/cmax*H;ctx.strokeStyle=css('--text');ctx.lineWidth=1.5;ctx.strokeRect(pad.l+b*bw+1,pad.t+H-bh,bw-2,bh);
+    const lo=Math.round(mn+b/bins*(mx-mn)),hi=Math.round(mn+(b+1)/bins*(mx-mn));
+    return {title:'Underwater streak', rows:[
+      {label:'Length',val:lo+'–'+hi+' trades'},
+      {label:'Runs here',val:counts[b]+' / 600',color:css('--accent2')},
+      {label:'Share',val:(counts[b]/600*100).toFixed(1)+'%'}
+    ]};
+  };
+}
+/* ============== NEW: Max Drawdown Depth distribution ============== */
+function drawDDDepth(mc){
+  const{ctx,w,h}=setup(id('ddDepthChart'),220);
+  const pad={l:20,r:10,t:14,b:26};const W=w-pad.l-pad.r,H=h-pad.t-pad.b;
+  const bins=20;const pcts=mc.dds.map(v=>v*100);const mn=0,mx=Math.max(...pcts,1);
+  const counts=histCounts(pcts,bins,mn,mx);const cmax=Math.max(...counts,1);const bw=W/bins;
+  const medDD=mc.medianDD*100;
+  for(let i=0;i<bins;i++){const bh=counts[i]/cmax*H;const mid=mn+(i+0.5)/bins*(mx-mn);
+    ctx.fillStyle=mid>40?hexA(css('--accent2'),.7):hexA(css('--accent3'),.55);ctx.fillRect(pad.l+i*bw+1,pad.t+H-bh,bw-2,bh);}
+  const medX=pad.l+(medDD-mn)/((mx-mn)||1)*W;
+  ctx.strokeStyle=css('--accent');ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(medX,pad.t);ctx.lineTo(medX,pad.t+H);ctx.stroke();ctx.setLineDash([]);
+  ctx.font='9px "Share Tech Mono"';ctx.fillStyle=css('--muted');ctx.textAlign='center';ctx.fillText('max drawdown depth % →',pad.l+W/2,h-6);
+  ctx.fillStyle=css('--accent');ctx.textAlign='left';ctx.fillText('median -'+medDD.toFixed(0)+'%',medX+3,pad.t+9);
+  REDRAW['ddDepthChart']=()=>drawDDDepth(mc);
+  HOVER['ddDepthChart']=(px,py)=>{
+    if(px<pad.l||px>pad.l+W||py<pad.t||py>pad.t+H)return null;
+    let b=Math.floor((px-pad.l)/bw);b=Math.max(0,Math.min(bins-1,b));
+    const bh=counts[b]/cmax*H;ctx.strokeStyle=css('--text');ctx.lineWidth=1.5;ctx.strokeRect(pad.l+b*bw+1,pad.t+H-bh,bw-2,bh);
+    const lo=(mn+b/bins*(mx-mn)),hi=(mn+(b+1)/bins*(mx-mn));
+    return {title:'Max drawdown bucket', rows:[
+      {label:'Depth',val:'-'+lo.toFixed(0)+'% to -'+hi.toFixed(0)+'%'},
+      {label:'Runs here',val:counts[b]+' / 600',color:(lo+hi)/2>40?css('--accent2'):css('--accent3')},
+      {label:'Share',val:(counts[b]/600*100).toFixed(1)+'%'}
+    ]};
+  };
+}
+/* ============== NEW: Kelly Growth Curve ============== */
+function drawKelly(winRate,rrMult,currentF){
+  const{ctx,w,h}=setup(id('kellyChart'),220);
+  const pad={l:46,r:10,t:14,b:24};const W=w-pad.l-pad.r,H=h-pad.t-pad.b;
+  const g=f=>{if(f<=0)return 0;if(f>=1)return -5;return winRate*Math.log(1+f*rrMult)+(1-winRate)*Math.log(1-f);};
+  const N=100;const pts=[];for(let k=1;k<N;k++){const f=k/N;pts.push({f,g:g(f)});}
+  let mx=Math.max(...pts.map(p=>p.g),0),mn=Math.min(...pts.map(p=>p.g));const rg=(mx-mn)||1;mx+=rg*.08;mn-=rg*.08;
+  const X=f=>pad.l+f*W,Y=v=>pad.t+(1-(v-mn)/(mx-mn))*H;
+  const fullK=Math.max(0,winRate-(1-winRate)/rrMult);
+  ctx.font='9px "Share Tech Mono"';ctx.fillStyle=css('--muted');ctx.textAlign='right';
+  for(let q=0;q<=3;q++){const v=mn+(mx-mn)*q/3,y=Y(v);ctx.strokeStyle=css('--border');ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+W,y);ctx.stroke();ctx.fillText(v.toFixed(3),pad.l-6,y+3);}
+  if(mn<0&&mx>0){const zy=Y(0);ctx.strokeStyle=css('--muted');ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(pad.l,zy);ctx.lineTo(pad.l+W,zy);ctx.stroke();ctx.setLineDash([]);}
+  ctx.beginPath();pts.forEach((p,i)=>i===0?ctx.moveTo(X(p.f),Y(p.g)):ctx.lineTo(X(p.f),Y(p.g)));ctx.strokeStyle=css('--accent');ctx.lineWidth=2;ctx.stroke();
+  const marker=(f,col,lbl)=>{if(f<=0||f>=1)return;const x=X(f);ctx.strokeStyle=col;ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,pad.t+H);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=col;ctx.beginPath();ctx.arc(x,Y(g(f)),3.5,0,7);ctx.fill();};
+  marker(fullK,css('--accent'),'K');marker(fullK/2,css('--accent4'),'½K');marker(currentF,css('--accent3'),'You');
+  ctx.textAlign='left';ctx.fillStyle=css('--muted');ctx.fillText('risk fraction per trade →',pad.l+2,h-6);
+  REDRAW['kellyChart']=()=>drawKelly(winRate,rrMult,currentF);
+  HOVER['kellyChart']=(px)=>{
+    if(px<pad.l||px>pad.l+W)return null;
+    let f=(px-pad.l)/W;f=Math.max(0.01,Math.min(0.99,f));const gv=g(f);const x=X(f),y=Y(gv);
+    ctx.strokeStyle=hexA(css('--muted'),.6);ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,pad.t+H);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle=css('--accent');ctx.beginPath();ctx.arc(x,y,3.5,0,7);ctx.fill();
+    return {title:'Risk = '+(f*100).toFixed(0)+'% / trade', rows:[
+      {label:'Growth/trade',val:(gv>=0?'+':'')+gv.toFixed(4),color:gv>=0?css('--accent'):css('--accent2')},
+      {label:'Full-Kelly',val:(fullK*100).toFixed(1)+'%',color:css('--accent')},
+      {label:'½-Kelly',val:(fullK*50).toFixed(1)+'%',color:css('--accent4')}
+    ]};
+  };
+}
+/* ============== NEW: Risk of Ruin curve ============== */
+function drawRoR(winRate,rrMult,trades,currentF){
+  const{ctx,w,h}=setup(id('rorChart'),220);
+  const pad={l:40,r:10,t:14,b:24};const W=w-pad.l-pad.r,H=h-pad.t-pad.b;
+  const steps=24;const simT=Math.min(trades,250);const sims=160;const ruinThresh=0.2;
+  const pts=[];
+  for(let k=1;k<=steps;k++){
+    const f=k/steps*0.5;                 // 0..50% risk per trade
+    let ruined=0;
+    for(let s=0;s<sims;s++){
+      let eq=1;let dead=false;
+      for(let t=0;t<simT;t++){
+        if(Math.random()<winRate) eq+=f*rrMult*eq; else eq-=f*eq;
+        if(eq<=ruinThresh){dead=true;break;}
+      }
+      if(dead)ruined++;
+    }
+    pts.push({f,ror:ruined/sims});
+  }
+  const X=f=>pad.l+(f/0.5)*W,Y=v=>pad.t+(1-v)*H;
+  ctx.font='9px "Share Tech Mono"';ctx.fillStyle=css('--muted');ctx.textAlign='right';
+  for(let q=0;q<=4;q++){const v=q/4,y=Y(v);ctx.strokeStyle=css('--border');ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+W,y);ctx.stroke();ctx.fillText((v*100).toFixed(0)+'%',pad.l-6,y+3);}
+  ctx.beginPath();pts.forEach((p,i)=>i===0?ctx.moveTo(X(p.f),Y(p.ror)):ctx.lineTo(X(p.f),Y(p.ror)));ctx.strokeStyle=css('--accent2');ctx.lineWidth=2;ctx.stroke();
+  ctx.beginPath();ctx.moveTo(X(0),Y(0));pts.forEach(p=>ctx.lineTo(X(p.f),Y(p.ror)));ctx.lineTo(X(pts[pts.length-1].f),Y(0));ctx.closePath();ctx.fillStyle=hexA(css('--accent2'),.1);ctx.fill();
+  if(currentF>0&&currentF<0.5){const x=X(currentF);ctx.strokeStyle=css('--accent3');ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,pad.t+H);ctx.stroke();ctx.setLineDash([]);}
+  ctx.textAlign='left';ctx.fillStyle=css('--muted');ctx.fillText('risk per trade % →',pad.l+2,h-6);
+  REDRAW['rorChart']=()=>drawRoR(winRate,rrMult,trades,currentF);
+  HOVER['rorChart']=(px)=>{
+    if(px<pad.l||px>pad.l+W)return null;
+    let idx=Math.round((px-pad.l)/W*(steps-1));idx=Math.max(0,Math.min(steps-1,idx));const p=pts[idx];
+    const x=X(p.f),y=Y(p.ror);ctx.strokeStyle=hexA(css('--muted'),.6);ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,pad.t+H);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle=css('--accent2');ctx.beginPath();ctx.arc(x,y,3.5,0,7);ctx.fill();
+    return {title:'Risk = '+(p.f*100).toFixed(1)+'% / trade', rows:[
+      {label:'Risk of ruin',val:(p.ror*100).toFixed(1)+'%',color:p.ror<0.05?css('--accent'):p.ror<0.2?css('--accent3'):css('--accent2')},
+      {label:'',val:'Ruin = account falls below 20% of start'}
+    ]};
+  };
+}
+/* ============== NEW: R-Multiple profile ============== */
+function drawRmult(winRate,rrMult){
+  const{ctx,w,h}=setup(id('rmultChart'),220);
+  const pad={l:20,r:10,t:20,b:30};const W=w-pad.l-pad.r,H=h-pad.t-pad.b;
+  const exp=winRate*rrMult-(1-winRate);
+  const items=[{l:'Loss (-1R)',r:-1,p:1-winRate,c:css('--accent2')},{l:'Win (+'+rrMult.toFixed(1)+'R)',r:rrMult,p:winRate,c:css('--accent')}];
+  const zeroY=pad.t+H*0.62;const rMax=Math.max(rrMult,1)*1.1;
+  const Yr=r=>zeroY-(r/rMax)*(zeroY-pad.t);const Yr2=r=>zeroY+(-r/rMax)*(pad.t+H-zeroY);
+  ctx.strokeStyle=css('--border');ctx.beginPath();ctx.moveTo(pad.l,zeroY);ctx.lineTo(pad.l+W,zeroY);ctx.stroke();
+  const bw=W/items.length;ctx.font='10px "Share Tech Mono"';ctx.textAlign='center';
+  items.forEach((it,i)=>{
+    const x=pad.l+i*bw+bw*0.25,bwe=bw*0.5;
+    const top=it.r>=0?Yr(it.r):zeroY, hgt=it.r>=0?(zeroY-Yr(it.r)):(Yr2(it.r)-zeroY);
+    ctx.fillStyle=hexA(it.c,.35+it.p*.5);ctx.fillRect(x,top,bwe,hgt);
+    ctx.strokeStyle=it.c;ctx.lineWidth=1.5;ctx.strokeRect(x,top,bwe,hgt);
+    ctx.fillStyle=it.c;ctx.fillText((it.p*100).toFixed(0)+'% chance',x+bwe/2,it.r>=0?top-6:top+hgt+14);
+    ctx.fillStyle=css('--muted');ctx.fillText(it.l,x+bwe/2,h-14);
+  });
+  // expectancy line
+  const eY=exp>=0?Yr(exp):Yr2(exp);
+  ctx.strokeStyle=css('--accent3');ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(pad.l,eY);ctx.lineTo(pad.l+W,eY);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle=css('--accent3');ctx.textAlign='right';ctx.fillText('Expectancy '+(exp>=0?'+':'')+exp.toFixed(2)+'R',pad.l+W,eY-4);
+  REDRAW['rmultChart']=()=>drawRmult(winRate,rrMult);
+  HOVER['rmultChart']=(px)=>{
+    if(px<pad.l||px>pad.l+W)return null;
+    let idx=Math.floor((px-pad.l)/bw);idx=Math.max(0,Math.min(items.length-1,idx));const it=items[idx];
+    return {title:it.l, rows:[
+      {label:'Frequency',val:(it.p*100).toFixed(1)+'%',color:it.c},
+      {label:'Payoff',val:(it.r>=0?'+':'')+it.r.toFixed(2)+'R'},
+      {label:'Contribution',val:(it.r*it.p>=0?'+':'')+(it.r*it.p).toFixed(3)+'R'}
+    ]};
+  };
+}
+/* ============== NEW: Rolling Win Rate ============== */
+function drawRollWR(samplePath,winRate){
+  const{ctx,w,h}=setup(id('rollWRChart'),220);
+  const pad={l:38,r:10,t:14,b:24};const W=w-pad.l-pad.r,H=h-pad.t-pad.b;
+  const n=samplePath.length;const win=Math.max(10,Math.round(n/10));
+  const roll=[];for(let i=0;i<n;i++){const a=Math.max(0,i-win+1);let s=0;for(let k=a;k<=i;k++)s+=samplePath[k]?1:0;roll.push(s/(i-a+1));}
+  const X=i=>pad.l+i/(n-1)*W,Y=v=>pad.t+(1-v)*H;
+  ctx.font='9px "Share Tech Mono"';ctx.fillStyle=css('--muted');ctx.textAlign='right';
+  for(let q=0;q<=4;q++){const v=q/4,y=Y(v);ctx.strokeStyle=css('--border');ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+W,y);ctx.stroke();ctx.fillText((v*100).toFixed(0)+'%',pad.l-6,y+3);}
+  // true rate line
+  const ty=Y(winRate);ctx.strokeStyle=css('--accent3');ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(pad.l,ty);ctx.lineTo(pad.l+W,ty);ctx.stroke();ctx.setLineDash([]);
+  ctx.beginPath();roll.forEach((v,i)=>i===0?ctx.moveTo(X(i),Y(v)):ctx.lineTo(X(i),Y(v)));ctx.strokeStyle=css('--accent4');ctx.lineWidth=1.8;ctx.stroke();
+  ctx.textAlign='left';ctx.fillStyle=css('--muted');ctx.fillText('trade # ('+win+'-trade window) →',pad.l+2,h-6);
+  REDRAW['rollWRChart']=()=>drawRollWR(samplePath,winRate);
+  HOVER['rollWRChart']=(px)=>{
+    if(px<pad.l||px>pad.l+W)return null;
+    let i=Math.round((px-pad.l)/W*(n-1));i=Math.max(0,Math.min(n-1,i));const x=X(i),y=Y(roll[i]);
+    ctx.strokeStyle=hexA(css('--muted'),.6);ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,pad.t+H);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle=css('--accent4');ctx.beginPath();ctx.arc(x,y,3.5,0,7);ctx.fill();
+    return {title:'Trade #'+i, rows:[
+      {label:'Rolling WR',val:(roll[i]*100).toFixed(1)+'%',color:css('--accent4')},
+      {label:'True WR',val:(winRate*100).toFixed(1)+'%',color:css('--accent3')},
+      {label:'Gap',val:((roll[i]-winRate)*100>=0?'+':'')+((roll[i]-winRate)*100).toFixed(1)+'%'}
+    ]};
+  };
+}
+/* ============== NEW: Expectancy Convergence ============== */
+function drawConv(samplePath,rrMult,baseRisk,fee,trueExp){
+  const{ctx,w,h}=setup(id('convChart'),220);
+  const pad={l:48,r:10,t:14,b:24};const W=w-pad.l-pad.r,H=h-pad.t-pad.b;
+  const n=samplePath.length;const cum=[];let sum=0;
+  for(let i=0;i<n;i++){const pl=(samplePath[i]?baseRisk*rrMult:-baseRisk)-fee;sum+=pl;cum.push(sum/(i+1));}
+  let mx=Math.max(...cum,trueExp),mn=Math.min(...cum,trueExp);const rg=(mx-mn)||1;mx+=rg*.1;mn-=rg*.1;
+  const X=i=>pad.l+i/(n-1)*W,Y=v=>pad.t+(1-(v-mn)/(mx-mn))*H;
+  ctx.font='9px "Share Tech Mono"';ctx.fillStyle=css('--muted');ctx.textAlign='right';
+  for(let q=0;q<=3;q++){const v=mn+(mx-mn)*q/3,y=Y(v);ctx.strokeStyle=css('--border');ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+W,y);ctx.stroke();ctx.fillText(fmtShort(v),pad.l-6,y+3);}
+  if(mn<0&&mx>0){const zy=Y(0);ctx.strokeStyle=css('--muted');ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(pad.l,zy);ctx.lineTo(pad.l+W,zy);ctx.stroke();ctx.setLineDash([]);}
+  // true expectancy line
+  const ty=Y(trueExp);ctx.strokeStyle=css('--accent3');ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(pad.l,ty);ctx.lineTo(pad.l+W,ty);ctx.stroke();ctx.setLineDash([]);
+  ctx.beginPath();cum.forEach((v,i)=>i===0?ctx.moveTo(X(i),Y(v)):ctx.lineTo(X(i),Y(v)));ctx.strokeStyle=css('--accent');ctx.lineWidth=1.8;ctx.stroke();
+  ctx.textAlign='left';ctx.fillStyle=css('--muted');ctx.fillText('trades accumulated →',pad.l+2,h-6);
+  REDRAW['convChart']=()=>drawConv(samplePath,rrMult,baseRisk,fee,trueExp);
+  HOVER['convChart']=(px)=>{
+    if(px<pad.l||px>pad.l+W)return null;
+    let i=Math.round((px-pad.l)/W*(n-1));i=Math.max(0,Math.min(n-1,i));const x=X(i),y=Y(cum[i]);
+    ctx.strokeStyle=hexA(css('--muted'),.6);ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(x,pad.t);ctx.lineTo(x,pad.t+H);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle=css('--accent');ctx.beginPath();ctx.arc(x,y,3.5,0,7);ctx.fill();
+    return {title:'After '+(i+1)+' trades', rows:[
+      {label:'Avg P/L',val:fmt(cum[i]),color:cum[i]>=0?css('--accent'):css('--accent2')},
+      {label:'True exp.',val:fmt(trueExp),color:css('--accent3')}
+    ]};
+  };
+}
+/* ============== NEW: Net Profit Contour ============== */
+function drawContour(risk,fee,trades){
+  const{ctx,w,h}=setup(id('contourChart'),220);
+  const pad={l:38,r:10,t:14,b:24};const W=w-pad.l-pad.r,H=h-pad.t-pad.b;
+  const wrN=40,rrN=40;const cw=W/wrN,ch=H/rrN;
+  const profit=(wRate,rMult)=>((wRate*risk*rMult)-((1-wRate)*risk)-fee)*trades;
+  let pmax=0;for(let i=0;i<wrN;i++)for(let j=0;j<rrN;j++){const wRate=(i+0.5)/wrN,rMult=0.25+(j/rrN)*4.75;pmax=Math.max(pmax,Math.abs(profit(wRate,rMult)));}
+  pmax=pmax||1;
+  for(let i=0;i<wrN;i++){for(let j=0;j<rrN;j++){
+    const wRate=(i+0.5)/wrN,rMult=0.25+(j/rrN)*4.75;const p=profit(wRate,rMult);const norm=p/pmax;
+    ctx.fillStyle=norm>=0?hexA(css('--accent'),0.08+Math.min(1,norm)*0.85):hexA(css('--accent2'),0.08+Math.min(1,-norm)*0.85);
+    ctx.fillRect(pad.l+i*cw,pad.t+H-(j+1)*ch,cw+0.5,ch+0.5);
+  }}
+  // breakeven frontier: rMult = (1-p)/p  (ignoring fee) across win rate
+  ctx.strokeStyle=css('--text');ctx.lineWidth=2;ctx.beginPath();let started=false;
+  for(let i=0;i<=wrN;i++){const wRate=(i)/wrN;if(wRate<=0.001)continue;const rMult=(1-wRate)/wRate;if(rMult<0.25||rMult>5)continue;
+    const x=pad.l+wRate*W;const y=pad.t+H-((rMult-0.25)/4.75)*H;if(!started){ctx.moveTo(x,y);started=true;}else ctx.lineTo(x,y);}
+  ctx.stroke();
+  ctx.font='9px "Share Tech Mono"';ctx.fillStyle=css('--muted');ctx.textAlign='center';ctx.fillText('win rate →',pad.l+W/2,h-6);
+  ctx.save();ctx.translate(11,pad.t+H/2);ctx.rotate(-Math.PI/2);ctx.fillText('R:R →',0,0);ctx.restore();
+  REDRAW['contourChart']=()=>drawContour(risk,fee,trades);
+  HOVER['contourChart']=(px,py)=>{
+    if(px<pad.l||px>pad.l+W||py<pad.t||py>pad.t+H)return null;
+    let i=Math.floor((px-pad.l)/cw),j=Math.floor((pad.t+H-py)/ch);i=Math.max(0,Math.min(wrN-1,i));j=Math.max(0,Math.min(rrN-1,j));
+    const wRate=(i+0.5)/wrN,rMult=0.25+(j/rrN)*4.75;const p=profit(wRate,rMult);
+    ctx.strokeStyle=css('--text');ctx.lineWidth=1.5;ctx.strokeRect(pad.l+i*cw,pad.t+H-(j+1)*ch,cw,ch);
+    return {title:'Combo', rows:[
+      {label:'Win rate',val:(wRate*100).toFixed(0)+'%'},
+      {label:'Risk:Reward',val:'1 : '+rMult.toFixed(2)},
+      {label:'Net profit',val:fmt(p),color:p>=0?css('--accent'):css('--accent2')}
+    ]};
+  };
+}
+/* ============== NEW: Strategy A vs B overlay ============== */
+function drawAB(){
+  const{ctx,w,h}=setup(id('abChart'),260);
+  const pad={l:52,r:10,t:14,b:24};const W=w-pad.l-pad.r,H=h-pad.t-pad.b;
+  const toPct=snap=>snap.median.map(v=>(v/snap.capital-1)*100);
+  const series=[];if(slotA)series.push({d:toPct(slotA),c:css('--accent'),n:'A'});if(slotB)series.push({d:toPct(slotB),c:css('--accent4'),n:'B'});
+  if(!series.length){
+    ctx.fillStyle=css('--muted');ctx.font='12px "Share Tech Mono"';ctx.textAlign='center';
+    ctx.fillText('Save current setup as A, tweak inputs, then save as B to compare.',pad.l+W/2,pad.t+H/2);
+    REDRAW['abChart']=()=>drawAB();HOVER['abChart']=()=>null;return;
+  }
+  let mx=Math.max(0,...series.flatMap(s=>s.d)),mn=Math.min(0,...series.flatMap(s=>s.d));const rg=(mx-mn)||1;mx+=rg*.08;mn-=rg*.08;
+  const Y=v=>pad.t+(1-(v-mn)/(mx-mn))*H,X=(i,len)=>pad.l+i/(len-1)*W;
+  ctx.font='9px "Share Tech Mono"';ctx.fillStyle=css('--muted');ctx.textAlign='right';
+  for(let q=0;q<=4;q++){const v=mn+(mx-mn)*q/4,y=Y(v);ctx.strokeStyle=css('--border');ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+W,y);ctx.stroke();ctx.fillText((v>=0?'+':'')+v.toFixed(0)+'%',pad.l-6,y+3);}
+  if(mn<0&&mx>0){const zy=Y(0);ctx.strokeStyle=css('--muted');ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(pad.l,zy);ctx.lineTo(pad.l+W,zy);ctx.stroke();ctx.setLineDash([]);}
+  series.forEach(s=>{ctx.beginPath();s.d.forEach((v,i)=>i===0?ctx.moveTo(X(i,s.d.length),Y(v)):ctx.lineTo(X(i,s.d.length),Y(v)));ctx.strokeStyle=s.c;ctx.lineWidth=2.2;ctx.stroke();
+    const last=s.d[s.d.length-1];ctx.fillStyle=s.c;ctx.textAlign='left';ctx.fillText(s.n+' '+(last>=0?'+':'')+last.toFixed(0)+'%',pad.l+W-46,Y(last)-5);});
+  ctx.textAlign='left';ctx.fillStyle=css('--muted');ctx.fillText('progress (normalised) →',pad.l+2,h-6);
+  REDRAW['abChart']=()=>drawAB();
+  HOVER['abChart']=(px)=>{
+    if(px<pad.l||px>pad.l+W)return null;const prog=(px-pad.l)/W;
+    const rows=[];series.forEach(s=>{const i=Math.round(prog*(s.d.length-1));const gx=X(i,s.d.length);ctx.fillStyle=s.c;ctx.beginPath();ctx.arc(gx,Y(s.d[i]),3.5,0,7);ctx.fill();rows.push({label:'Strategy '+s.n,val:(s.d[i]>=0?'+':'')+s.d[i].toFixed(1)+'%',color:s.c});});
+    const gx=pad.l+prog*W;ctx.strokeStyle=hexA(css('--muted'),.6);ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(gx,pad.t);ctx.lineTo(gx,pad.t+H);ctx.stroke();ctx.setLineDash([]);
+    return {title:(prog*100).toFixed(0)+'% through', rows};
+  };
+}
+
 function drawAll(){
   if(!STATE)return;const s=STATE;
   drawEquity(s.mc);drawHist(s.mc);drawDD(s.mc);
   drawSens(s.winRate,s.rrMult,s.baseRisk,s.trades,s.fee);
   drawHeat(s.baseRisk,s.fee);drawFlow(s.grossProfit,s.grossLoss,s.totalFees);
+  // new charts
+  drawFan(s.mc);drawDDDur(s.mc);drawDDDepth(s.mc);
+  drawKelly(s.winRate,s.rrMult,s.currentF);drawRoR(s.winRate,s.rrMult,s.trades,s.currentF);
+  drawRmult(s.winRate,s.rrMult);drawRollWR(s.samplePath,s.winRate);
+  drawConv(s.samplePath,s.rrMult,s.baseRisk,s.fee,s.expectancy);
+  drawContour(s.baseRisk,s.fee,s.trades);drawAB();
 }
 
 /* =========================================================
@@ -896,7 +1368,12 @@ function calculate(){
   const roi=((mc.medianFinal-capital)/capital)*100;
   const cagr=(Math.pow(mc.medianFinal/capital,100/trades)-1)*100;
 
-  STATE={winRate,rrMult,baseRisk,capital,trades,fee,grossProfit,grossLoss,totalFees,mc};
+  // one representative trade sequence (for rolling win-rate & convergence charts)
+  const samplePath=[];for(let t=0;t<trades;t++)samplePath.push(Math.random()<winRate);
+  const currentF=MODE==='percent'?(riskInput/100):(baseRisk/capital);
+
+  STATE={winRate,rrMult,baseRisk,capital,trades,fee,grossProfit,grossLoss,totalFees,mc,expectancy,samplePath,currentF};
+  updateABStatus();
 
   // KPIs
   setV('k-profit',fmt(mc.medianFinal-capital),(mc.medianFinal-capital)>=0?'green':'red');
